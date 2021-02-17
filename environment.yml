@@ -1,7 +1,8 @@
 channels:
   - conda-forge
+  - bioconda
 dependencies:
+  - bioconda::illumina-interop=1.1.21
   - pip
   - pip:
-    - interop==1.1.21
     - iplotter==0.4.3 
