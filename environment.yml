@@ -4,4 +4,4 @@ dependencies:
   - pip
   - pip:
     - interop==1.1.21
-    - iplotte==0.4.3 
+    - iplotter==0.4.3 
