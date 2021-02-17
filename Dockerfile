@@ -24,7 +24,6 @@ ENV PATH=$PATH:/home/$NB_USER/miniconda3/bin/
 RUN rm -f /home/$NB_USER/environment.yml && \
     rm -f /home/$NB_USER/Dockerfile
 COPY environment.yml /home/$NB_USER/environment.yml
-COPY Dockerfile /home/$NB_USER/Dockerfile
 COPY examples /home/$NB_USER/examples
 USER root
 RUN chown ${NB_UID} /home/$NB_USER/environment.yml && \
