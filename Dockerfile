@@ -13,6 +13,10 @@ RUN apt-get -y update &&   \
       make \
       libgcc-5-dev \
       gfortran \
+      pandoc \
+      texlive-xetex \
+      texlive-fonts-recommended \
+      texlive-generic-recommended \
       git  && \
     apt-get purge -y --auto-remove && \
     apt-get clean && \
