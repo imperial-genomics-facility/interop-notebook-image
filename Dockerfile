@@ -19,6 +19,7 @@ RUN apt-get -y update &&   \
       texlive-generic-recommended \
       texlive-generic-extra \
       fonts-lmodern \
+      chromium-chromedriver \
       git  && \
     apt-get purge -y --auto-remove && \
     apt-get clean && \
