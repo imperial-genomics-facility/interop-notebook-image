@@ -18,6 +18,7 @@ RUN apt-get -y update &&   \
       texlive-fonts-recommended \
       texlive-generic-recommended \
       texlive-generic-extra \
+      fonts-lmodern \
       git  && \
     apt-get purge -y --auto-remove && \
     apt-get clean && \
