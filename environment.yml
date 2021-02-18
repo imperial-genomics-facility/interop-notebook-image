@@ -5,4 +5,6 @@ dependencies:
   - bioconda::illumina-interop=1.1.21
   - pip
   - pip:
-    - iplotter==0.4.3 
+    - iplotter==0.4.3
+    - pyppeteer==0.2.5
+    - nbconvert[webpdf]
