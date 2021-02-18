@@ -17,6 +17,7 @@ RUN apt-get -y update &&   \
       texlive-xetex \
       texlive-fonts-recommended \
       texlive-generic-recommended \
+      texlive-generic-extra \
       git  && \
     apt-get purge -y --auto-remove && \
     apt-get clean && \
