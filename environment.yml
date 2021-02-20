@@ -8,5 +8,4 @@ dependencies:
     - jupyterlab>=3.0.0
     - nbconvert[webpdf]>=6.0.0
     - iplotter==0.4.3
-    - pyppeteer==0.2.5
     - gviz-api==1.9.0
