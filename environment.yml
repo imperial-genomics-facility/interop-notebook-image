@@ -3,12 +3,9 @@ channels:
   - bioconda
 dependencies:
   - bioconda::illumina-interop=1.1.21
-  - conda-forge::nodejs=15.3.0
   - pip
   - pip:
     - iplotter==0.4.3
     - pyppeteer==0.2.5
     - gviz-api==1.9.0 
     - nbconvert[webpdf]
-    - plotly==4.14.3
-    - ipywidgets>=7.5
