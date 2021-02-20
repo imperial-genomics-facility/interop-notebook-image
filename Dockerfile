@@ -59,8 +59,6 @@ RUN apt-get -y update &&   \
       lsb-release \
       xdg-utils \
       git  && \
-    curl -sL https://deb.nodesource.com/setup_15.x |bash - && \
-    apt-get install --no-install-recommends -y nodejs && \
     apt-get purge -y --auto-remove && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
