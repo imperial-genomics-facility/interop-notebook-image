@@ -59,6 +59,8 @@ RUN apt-get -y update &&   \
       lsb-release \
       xdg-utils \
       git  && \
+    curl -sL https://deb.nodesource.com/setup_15.x |bash - && \
+    apt-get install --no-install-recommends -y nodejs && \
     apt-get purge -y --auto-remove && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -77,6 +79,8 @@ USER $NB_USER
 WORKDIR /home/$NB_USER
 RUN conda update -n base -c defaults conda && \
     conda env update -q -n notebook-env --file /home/$NB_USER/environment.yml && \
+    jupyter labextension install jupyterlab-plotly@4.14.3 && \
+    jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget@4.14.3 && \
     conda clean -a -y && \
     rm -rf /home/$NB_USER/.cache && \
     rm -rf /tmp/* && \
