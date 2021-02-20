@@ -79,8 +79,8 @@ USER $NB_USER
 WORKDIR /home/$NB_USER
 RUN conda update -n base -c defaults conda && \
     conda env update -q -n notebook-env --file /home/$NB_USER/environment.yml && \
-    jupyter labextension install jupyterlab-plotly@4.14.3 && \
-    jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget@4.14.3 && \
+    /home/vmuser/miniconda3/envs/notebook-env/bin/jupyter labextension install jupyterlab-plotly@4.14.3 && \
+    /home/vmuser/miniconda3/envs/notebook-env/bin/jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget@4.14.3 && \
     conda clean -a -y && \
     rm -rf /home/$NB_USER/.cache && \
     rm -rf /tmp/* && \
