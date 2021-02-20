@@ -5,9 +5,8 @@ dependencies:
   - bioconda::illumina-interop=1.1.21
   - pip
   - pip:
-    - jupyterlab>=3.0.0 --upgrade
-    - nbconvert>=6.0.0 --upgrade
+    - "jupyterlab>=3.0.0 --no-cache-dir  -U"
+    - "nbconvert[webpdf]>=6.0.0 --no-cache-dir  -U"
     - iplotter==0.4.3
     - pyppeteer==0.2.5
-    - gviz-api==1.9.0 
-    - nbconvert[webpdf]
+    - gviz-api==1.9.0
