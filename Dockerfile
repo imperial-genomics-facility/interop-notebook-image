@@ -70,11 +70,14 @@ RUN rm -f /home/$NB_USER/environment.yml && \
     rm -f /home/$NB_USER/Dockerfile
 COPY environment.yml /home/$NB_USER/environment.yml
 COPY Dockerfile /home/$NB_USER/Dockerfile
+COPY interop_lib /home/$NB_USER/interop_lib
 USER root
 RUN chown ${NB_UID} /home/$NB_USER/environment.yml && \
-    chown ${NB_UID} /home/$NB_USER/Dockerfile
+    chown ${NB_UID} /home/$NB_USER/Dockerfile && \
+    chown -R ${NB_UID} /home/$NB_USER/interop_lib
 USER $NB_USER
 WORKDIR /home/$NB_USER
+ENV PYTHONPATH=${PYTHONPATH}:/home/$NB_USER/interop_lib
 RUN conda update -n base -c defaults conda && \
     conda env update -q -n notebook-env --file /home/$NB_USER/environment.yml && \
     conda clean -a -y && \
