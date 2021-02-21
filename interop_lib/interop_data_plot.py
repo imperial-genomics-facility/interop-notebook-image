@@ -108,7 +108,7 @@ def extract_read_data_from_tileDf(tileDf):
         read_data.append({
           'read_id':read_id,
           'lane_id':lane_id,
-          'density':density_count,
+          'density':'{:.2f}'.format(density_count),
           'read_count':'{:.2f}'.format(read_count),
           'read_count_pf':'{:.2f}'.format(read_count_pf),
           'cluster_pf':pct_cluster_count_pf})
@@ -609,6 +609,23 @@ def get_qscore_bar_plots(q2030Df,color_palette='Spectral_r',width=1000,height=40
   except Exception as e:
     raise ValueError('Failed to get qscore heatmap, error: {0}'.format(e))
 
+def color_numeric_column_by_value(s,target_column,threshold,good_color='green',bad_color='red'):
+  try:
+    color_list = list()
+    if target_column not in list(s.keys()):
+      raise KeyError('column {0} not found in series'.format(target_column))
+    for c in list(s.keys()):
+      if c==target_column:
+        if float(s[c]) > float(threshold):
+          color_list.append('color:{0}'.format(good_color))
+        else:
+          color_list.append('color:{0}'.format(bad_color))
+      else:
+        color_list.append('')
+    return color_list
+  except Exception as e:
+    raise ValueError('Failed to color {0} column, error: {1}'.format(target_column,e))
+
 def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
   try:
     (tile,q2030,extraction,error,empiricalPhasing,correctedInt,qByLane) = \
@@ -621,6 +638,13 @@ def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
         extractionDf=extraction,
         errorDf=error,
         runinfoDf=runinfoDf)
+    merged_data.columns = [c.capitalize().replace("_"," ") for c in merged_data.columns]
+    merged_data_html = \
+      HTML(
+        merged_data.style.apply(
+          lambda s: color_numeric_column_by_value(s,target_column='Q30 pct',threshold=90.0),
+          axis=1,).\
+        hide_index().render())
     (intensityA_plot,intensityT_plot,intensityG_plot,intensityC_plot) = \
       plot_intensity_data(correctedIntDf=correctedInt)
     (clusterCount_plot,density_plot) = \
@@ -629,7 +653,7 @@ def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
       get_qscore_distribution_plots(qByLaneDf=qByLane)
     qscore_bar_plots = \
       get_qscore_bar_plots(q2030Df=q2030)
-    return HTML(merged_data.to_html(index=False)),intensityA_plot,intensityT_plot,intensityG_plot,intensityC_plot,\
+    return merged_data_html,intensityA_plot,intensityT_plot,intensityG_plot,intensityC_plot,\
            clusterCount_plot,density_plot,qscore_distribution_plot,qscore_bar_plots
   except Exception as e:
     raise ValueError('Failed to get report and plots for interop, error: {0}'.format(e))
