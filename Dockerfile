@@ -81,6 +81,7 @@ WORKDIR /home/$NB_USER
 ENV PYTHONPATH=${PYTHONPATH}:/home/$NB_USER/interop_lib
 RUN conda update -n base -c defaults conda && \
     conda env update -q -n notebook-env --file /home/$NB_USER/environment.yml && \
+    pyppeteer-instal \
     conda clean -a -y && \
     rm -rf /home/$NB_USER/.cache && \
     rm -rf /tmp/* && \
