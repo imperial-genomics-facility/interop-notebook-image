@@ -427,10 +427,10 @@ def get_box_plots(tilesDf,color_palette='Spectral_r',width=800,height=600):
   :param width: Plot width, default 800
   :param height: Plot height, default 600
   :returns: A list of IPythondisplay.HTML objects containing the following boxplots
-  
+
   * ClusterCount
   * Density
-  
+
   """
   try:
     if not isinstance(tilesDf,pd.DataFrame):
@@ -629,7 +629,7 @@ def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
       get_qscore_distribution_plots(qByLaneDf=qByLane)
     qscore_bar_plots = \
       get_qscore_bar_plots(q2030Df=q2030)
-    return HTML(merged_data.to_html()),intensityA_plot,intensityT_plot,intensityG_plot,intensityC_plot,\
+    return HTML(merged_data.to_html(index=False)),intensityA_plot,intensityT_plot,intensityG_plot,intensityC_plot,\
            clusterCount_plot,density_plot,qscore_distribution_plot,qscore_bar_plots
   except Exception as e:
     raise ValueError('Failed to get report and plots for interop, error: {0}'.format(e))
