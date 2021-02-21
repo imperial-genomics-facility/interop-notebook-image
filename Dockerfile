@@ -58,6 +58,7 @@ RUN apt-get -y update &&   \
       libnss3 \
       lsb-release \
       xdg-utils \
+      chromium-browser \
       git  && \
     apt-get purge -y --auto-remove && \
     apt-get clean && \
