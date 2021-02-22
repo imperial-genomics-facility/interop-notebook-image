@@ -568,7 +568,7 @@ def get_qscore_bar_plots(q2030Df,color_palette='Spectral_r',width=1000,height=40
     for lane_id,l_data in q2030Df.groupby('Lane'):
       lane_id = int(lane_id)
       dataset = list(l_data.groupby('Cycle')['MedianQScore'].mean().values)
-      dataset = [int(i) if i < 50 else 0 for i in dataset]
+      #dataset = [int(i) if i < 50 else 0 for i in dataset]
       labels = list(l_data.groupby('Cycle')['MedianQScore'].mean().index)
       data = {
         "datasets": [{
