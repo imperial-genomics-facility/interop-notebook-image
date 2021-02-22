@@ -560,6 +560,8 @@ def get_qscore_bar_plots(q2030Df,color_palette='Spectral_r',width=1000,height=40
     q2030Df['Lane'] = q2030Df['Lane'].astype(int)
     q2030Df['Cycle'] = q2030Df['Cycle'].astype(int)
     q2030Df['MedianQScore'] = q2030Df['MedianQScore'].astype(int)
+    q2030Df['MedianQScore'] = \
+      pd.np.where(q2030Df['MedianQScore'] > 50,0,q2030Df['MedianQScore'])
     q2030Df['Tile'] = q2030Df['Tile'].astype(int)
     qscore_bar_plots = list()
     colors = sns.color_palette(color_palette,8,as_cmap=False).as_hex()
