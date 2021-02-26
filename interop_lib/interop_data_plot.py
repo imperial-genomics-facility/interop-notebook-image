@@ -509,6 +509,8 @@ def get_qscore_distribution_plots(qByLaneDf,color_palette='Spectral_r',width=800
     qByLane_filt = qByLaneDf[qByLaneDf['Lane'].isin(['0','1','2','3','4','5','6','7','8'])].copy()
     qByLane_filt = qByLane_filt.applymap(lambda x: int(x))
     colors = sns.color_palette(color_palette,8,as_cmap=False).as_hex()
+    max_q30_line = \
+      int(qByLane_filt.groupby('Lane').agg('mean')['Bin_7'].max()) + 10000
     qscore_dist_data = list()
     for lane_id,l_data in qByLane_filt.groupby('Lane'):
       lane_id = int(lane_id)
@@ -517,6 +519,36 @@ def get_qscore_distribution_plots(qByLaneDf,color_palette='Spectral_r',width=800
         "data": list(l_data[key_cols].mean().values),
         "backgroundColor":colors[lane_id - 1]
       })
+    qscore_dist_data.append({
+      "type":"line",
+      "data":[
+        {"y":None},
+        {"y":None},
+        {"y":None},
+        {"y":None},
+        {"y":max_q30_line},
+        {"y":max_q30_line},
+        {"y":max_q30_line}],
+      "backgroundColor":"rgba(54, 162, 235, 0.3)",
+      "borderColor":"transparent",
+      "legend": { "display": False },
+      "fill":'-1',
+      "label":"Q30"
+    })
+    qscore_dist_data.append({
+      "type":"line",
+      "data":[
+        {"y":None},
+        {"y":None},
+        {"y":None},
+        {"y":None},
+        {"y":0},
+        {"y":0},
+        {"y":0}],
+      "backgroundColor":"transparent",
+      "legend": { "display": False },
+      "label":""
+    })
     data = {
       "datasets": qscore_dist_data,
       "labels": key_cols
@@ -524,6 +556,9 @@ def get_qscore_distribution_plots(qByLaneDf,color_palette='Spectral_r',width=800
     options = {
       "animation": {
         "duration": 0
+      },
+      "legend":{
+        "display": True
       },
       "title": {
         "display": True,
