@@ -625,7 +625,8 @@ def get_qscore_bar_plots(q2030Df,color_palette='Spectral_r',width=1000,height=40
         "scales": {
           "yAxes":[{
             "ticks":{
-              "min":0
+              "min":0,
+              "max":45,
             },
             "scaleLabel":{
               "display":True,
