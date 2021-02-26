@@ -531,23 +531,11 @@ def get_qscore_distribution_plots(qByLaneDf,color_palette='Spectral_r',width=800
         {"y":max_q30_line}],
       "backgroundColor":"rgba(54, 162, 235, 0.3)",
       "borderColor":"transparent",
+      "pointBorderColor":"transparent",
+      "pointBackgroundColor":"transparent",
       "legend": { "display": False },
       "fill":'-1',
       "label":"Q30"
-    })
-    qscore_dist_data.append({
-      "type":"line",
-      "data":[
-        {"y":None},
-        {"y":None},
-        {"y":None},
-        {"y":None},
-        {"y":0},
-        {"y":0},
-        {"y":0}],
-      "backgroundColor":"transparent",
-      "legend": { "display": False },
-      "label":""
     })
     data = {
       "datasets": qscore_dist_data,
