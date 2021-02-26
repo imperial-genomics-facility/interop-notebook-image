@@ -635,14 +635,22 @@ def get_qscore_bar_plots(q2030Df,color_palette='Spectral_r',width=1000,height=40
   except Exception as e:
     raise ValueError('Failed to get qscore heatmap, error: {0}'.format(e))
 
-def color_numeric_column_by_value(s,target_column,threshold,good_color='green',bad_color='red'):
+def color_report_table(s,q30_column='Q30 pct',q30_threshold=90,cluster_pf_column='Cluster pf',cluster_pf_threshold=0.65,index_read_column='Index read',good_color='green',bad_color='red'):
   try:
     color_list = list()
-    if target_column not in list(s.keys()):
-      raise KeyError('column {0} not found in series'.format(target_column))
+    if q30_column not in list(s.keys()) or \
+       cluster_pf_column not in list(s.keys()):
+      raise KeyError('target columns not found in series {0}'.format(s.keys()))
     for c in list(s.keys()):
-      if c==target_column:
-        if float(s[c]) > float(threshold):
+      if c==q30_column and \
+         s[index_read_column]=='N':
+        if float(s[c]) >= float(q30_threshold):
+          color_list.append('color:{0}'.format(good_color))
+        else:
+          color_list.append('color:{0}'.format(bad_color))
+      elif c==cluster_pf_column and \
+           s[index_read_column]=='N':
+        if float(s[c]) >= float(cluster_pf_threshold):
           color_list.append('color:{0}'.format(good_color))
         else:
           color_list.append('color:{0}'.format(bad_color))
@@ -650,7 +658,7 @@ def color_numeric_column_by_value(s,target_column,threshold,good_color='green',b
         color_list.append('')
     return color_list
   except Exception as e:
-    raise ValueError('Failed to color {0} column, error: {1}'.format(target_column,e))
+    raise ValueError('Failed to color target columns, error: {0}'.format(e))
 
 def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
   try:
@@ -668,7 +676,16 @@ def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
     merged_data_html = \
       HTML(
         merged_data.style.apply(
-          lambda s: color_numeric_column_by_value(s,target_column='Q30 pct',threshold=90.0),
+          lambda s: \
+            color_report_table(
+              s=s,
+              q30_column='Q30 pct',
+              q30_threshold=90,
+              cluster_pf_column='Cluster pf',
+              cluster_pf_threshold=0.65,
+              index_read_column='Index read',
+              good_color='green',
+              bad_color='red'),
           axis=1,).\
         hide_index().render())
     (intensityA_plot,intensityT_plot,intensityG_plot,intensityC_plot) = \
