@@ -3,6 +3,7 @@ import pandas as pd
 from collections import defaultdict
 import seaborn as sns
 import iplotter
+from scipy.stats import linregress
 from IPython.display import HTML
 
 def read_interop_data(filepath):
@@ -187,7 +188,7 @@ def get_data_from_errorDf(errorDf,runinfoDf):
         error_data.append({
           'lane_id':lane_id,
           'read_id':read_id,
-          'error_cycles':error_cycles})
+          'error_cycles':str(error_cycles)})
     error_data = pd.DataFrame(error_data)
     error_data['lane_id'] = error_data['lane_id'].astype(int)
     error_data['read_id'] = error_data['read_id'].astype(int)
@@ -195,17 +196,78 @@ def get_data_from_errorDf(errorDf,runinfoDf):
   except Exception as e:
     raise ValueError('Failed to get data from errorDf, error: {0}'.format(e))
 
-def get_summart_stats(tileDf,q2030Df,extractionDf,errorDf,runinfoDf):
+def calculate_phasing_stats(empiricalPhasingDf,runinfoDf):
   try:
-    read_data = extract_read_data_from_tileDf(tileDf=tileDf)
-    yield_data = extract_yield_data_from_q2030Df(q2030Df=q2030Df,runinfoDf=runinfoDf)
-    extraction_data = get_extraction_data_from_extractionDf(extractionDf=extractionDf,runinfoDf=runinfoDf)
-    error_data = get_data_from_errorDf(errorDf=errorDf,runinfoDf=runinfoDf)
+    for i in ('Lane','Cycle','Tile','Phasing','Prephasing'):
+      if i not in empiricalPhasingDf.columns:
+        raise KeyError('Missing key {0} in empiricalPhasingDf'.format(i))
+
+    empiricalPhasingDf['Lane'] = empiricalPhasingDf['Lane'].astype(int)
+    empiricalPhasingDf['Cycle'] = empiricalPhasingDf['Cycle'].astype(int)
+    empiricalPhasingDf['Tile'] = empiricalPhasingDf['Tile'].astype(int)
+    empiricalPhasingDf['Phasing'] = empiricalPhasingDf['Phasing'].astype(float)
+    empiricalPhasingDf['Prephasing'] = empiricalPhasingDf['Prephasing'].astype(float)
+    data = list()
+    for lane_id,l_data in empiricalPhasingDf.groupby('Lane'):
+      for read_entry in runinfoDf.to_dict(orient='records'):
+        read_id = read_entry.get('read_id')
+        index_read = read_entry.get('index_read')
+        start_cycle = int(read_entry.get('start_cycle'))
+        total_cycle = int(read_entry.get('cycles'))
+        finish_cycle = start_cycle + total_cycle
+        phasing_scores = list(l_data[(l_data['Cycle'] > start_cycle+1) & (l_data['Cycle'] < finish_cycle)].groupby('Cycle')['Phasing'].agg('median'))
+        prephasing_scores = list(l_data[(l_data['Cycle'] > start_cycle+1) & (l_data['Cycle'] < finish_cycle)].groupby('Cycle')['Prephasing'].agg('median'))
+        if index_read == 'N':
+          linreg_phasing = linregress(range(1,len(phasing_scores)+1), phasing_scores)
+          linreg_prephasing = linregress(range(1,len(prephasing_scores)+1), prephasing_scores)
+          data.append({
+              'lane_id':lane_id,
+              'read_id':read_id,
+              'phasing_slope':'{0:.3f}'.format(linreg_phasing.slope),
+              'phasing_offset':'{0:.3f}'.format(linreg_phasing.intercept),
+              'prephasing_slope':'{0:.3f}'.format(linreg_prephasing.slope),
+              'prephasing_offset':'{0:.3f}'.format(linreg_prephasing.intercept),
+          })
+        else:
+          data.append({
+              'lane_id':lane_id,
+              'read_id':read_id,
+              'phasing_slope':0,
+              'phasing_offset':0,
+              'prephasing_slope':0,
+              'prephasing_offset':0,
+          })
+    data = pd.DataFrame(data)
+    return data
+  except Exception as e:
+    raise ValueError('Failed to get phasing stats, error: {0}'.format(e))
+
+def get_summart_stats(tileDf,q2030Df,extractionDf,errorDf,empiricalPhasingDf,runinfoDf):
+  try:
+    read_data = \
+      extract_read_data_from_tileDf(tileDf=tileDf)
+    yield_data = \
+      extract_yield_data_from_q2030Df(
+        q2030Df=q2030Df,
+        runinfoDf=runinfoDf)
+    extraction_data = \
+      get_extraction_data_from_extractionDf(
+        extractionDf=extractionDf,
+        runinfoDf=runinfoDf)
+    phasing_data = \
+      calculate_phasing_stats(
+        empiricalPhasingDf=empiricalPhasingDf,
+        runinfoDf=runinfoDf)
+    error_data = \
+      get_data_from_errorDf(
+        errorDf=errorDf,
+        runinfoDf=runinfoDf)
     merged_data = \
       yield_data.\
         merge(read_data,how='left',on=['read_id','lane_id']).\
         merge(runinfoDf,how='left',on='read_id').\
         merge(extraction_data,how='left',on=['lane_id','read_id']).\
+        merge(phasing_data,how='left',on=['lane_id','read_id']).\
         merge(error_data,how='left',on=['lane_id','read_id']).\
         fillna(0)
     return merged_data
@@ -660,7 +722,114 @@ def color_report_table(s,q30_column='Q30 pct',q30_threshold=90,cluster_pf_column
   except Exception as e:
     raise ValueError('Failed to color target columns, error: {0}'.format(e))
 
+def get_flowcell_plot(tileDf,key='ClusterCountPF',surface_cutoff=2000,width=1000,height=500):
+  try:
+    if not isinstance(tileDf,pd.DataFrame):
+      raise TypeError('Expecting a Pandas dataframe, got {0}'.format(type(tileDf)))
+
+    for i in ('Lane','Tile',key):
+      if i not in tileDf.columns:
+        raise KeyError('Missing key {0} in tileDf'.format(i))
+
+    surface1_zdata = list()
+    surface2_zdata = list()
+    tileDf_filt = tileDf[tileDf['Lane']!=''].copy()
+    tileDf_filt['Lane'] = tileDf_filt['Lane'].astype(int)
+    tileDf_filt['Tile'] = tileDf_filt['Tile'].astype(int)
+    tileDf_filt[key] = tileDf_filt[key].astype(float)
+    lanes = list()
+    for lane_id,l_data in tileDf_filt.groupby('Lane'):
+      lanes.append('Lane {0}'.format(lane_id))
+      surface1_zdata.append(
+        list(l_data[l_data['Tile'] < surface_cutoff].\
+          groupby('Tile')[key].agg('median').values))
+      surface2_zdata.append(
+        list(l_data[l_data['Tile'] >= surface_cutoff].\
+          groupby('Tile')[key].agg('median').values))
+    surface1_tiles = \
+      list(tileDf_filt[(tileDf_filt['Lane']==lane_id) & (tileDf_filt['Tile'] < surface_cutoff)].\
+          groupby('Tile').groups.keys())
+    surface2_tiles = \
+      list(tileDf_filt[(tileDf_filt['Lane']==lane_id) & (tileDf_filt['Tile'] >= surface_cutoff)].\
+          groupby('Tile').groups.keys())
+    surface1_tiles = [
+      'Tile {0}'.format(t)
+        for t in surface1_tiles
+          if int(t) < surface_cutoff]
+    surface2_tiles = [
+      'Tile {0}'.format(t)
+        for t in surface2_tiles
+          if int(t) >= surface_cutoff]
+    surface1_data = [{
+      "z":surface1_zdata,
+      "x":surface1_tiles,
+      "y":lanes,
+      "type": 'heatmap',
+      "colorscale": 'Viridis'
+    }]
+    surface2_data = [{
+      "z":surface2_zdata,
+      "x":surface2_tiles,
+      "y":lanes,
+      "type": 'heatmap',
+      "colorscale": 'Viridis'
+    }]
+    surface1_layout = {
+      "title": 'Flowcell surface 1 heatmap - {0}'.format(key),
+      "xaxis": {
+        "side": 'bottom',
+        "title":"Tiles",
+        "tickson":'boundaries'},
+      "yaxis": {
+        "autosize": False,
+        "title":"Lanes",
+        "width":width,
+        "height":height,
+        "tickson":'boundaries'
+      }
+    }
+    surface2_layout = {
+      "title": 'Flowcell surface 2 heatmap - {0}'.format(key),
+      "xaxis": {
+        "side": 'bottom',
+        "title":"Tiles",
+        "tickson":'boundaries'},
+      "yaxis": {
+        "autosize": False,
+        "title":"Lanes",
+        "width":width,
+        "height":height,
+        "tickson":'boundaries'
+      }
+    }
+    surface1_plotter = iplotter.PlotlyPlotter()
+    surface2_plotter = iplotter.PlotlyPlotter()
+    return surface1_plotter.plot(surface1_data,layout=surface1_layout, w=width, h=height),\
+           surface2_plotter.plot(surface2_data,layout=surface2_layout, w=width, h=height)
+  except Exception as e:
+    raise ValueError('Failed to plot flowcell data, error: {0}'.format(e))
+
 def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
+  """
+  A function for Interop report and plots generation
+
+  :params interop_dump: Path to interop dump file generated using the interop_dumptext tool
+  :params runInfoXml_path: Path to RunInfo.xml file for Illumina run
+  :returns: Returns the following
+
+    * merged_data_html: HTML formatted summary table
+    * intensityA_plot: Line plot for intensity data of channel A
+    * intensityT_plot: Line plot for intensity data of channel T
+    * intensityG_plot: Line plot for intensity data of channel G
+    * intensityC_plot: Line plot for intensity data of channel C
+    * clusterCount_plot: Box plot for ClusterCount and ClusterCountPF data
+    * density_plot: Box plot for Density and DensityPF data
+    * qscore_distribution_plot: Mean QScore distribution for all lanes for individual bins
+    * qscore_bar_plots: Mean QScore distribution per cycle for individual lanes
+    * f_surface1: Heatmap plot of flowcell surface 1
+    * f_surface2: Heatmap plot of flowcell surface 2
+
+  """
   try:
     (tile,q2030,extraction,error,empiricalPhasing,correctedInt,qByLane) = \
       read_interop_data(filepath=interop_dump)
@@ -670,6 +839,7 @@ def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
         tileDf=tile,
         q2030Df=q2030,
         extractionDf=extraction,
+        empiricalPhasingDf=empiricalPhasing,
         errorDf=error,
         runinfoDf=runinfoDf)
     merged_data.columns = [c.capitalize().replace("_"," ") for c in merged_data.columns]
@@ -690,6 +860,8 @@ def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
         hide_index().render())
     (intensityA_plot,intensityT_plot,intensityG_plot,intensityC_plot) = \
       plot_intensity_data(correctedIntDf=correctedInt)
+    (f_surface1,f_surface2) = \
+      get_flowcell_plot(tileDf=tile)
     (clusterCount_plot,density_plot) = \
       get_box_plots(tilesDf=tile)
     qscore_distribution_plot = \
@@ -697,7 +869,7 @@ def summary_report_and_plots_for_interop_dump(interop_dump,runInfoXml_path):
     qscore_bar_plots = \
       get_qscore_bar_plots(q2030Df=q2030)
     return merged_data_html,intensityA_plot,intensityT_plot,intensityG_plot,intensityC_plot,\
-           clusterCount_plot,density_plot,qscore_distribution_plot,qscore_bar_plots
+           clusterCount_plot,density_plot,qscore_distribution_plot,qscore_bar_plots,f_surface1,f_surface2
   except Exception as e:
     raise ValueError('Failed to get report and plots for interop, error: {0}'.format(e))
 
