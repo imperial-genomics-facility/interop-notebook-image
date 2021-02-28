@@ -185,10 +185,15 @@ def get_data_from_errorDf(errorDf,runinfoDf):
         total_cycle = int(read_entry.get('cycles'))
         finish_cycle = start_cycle + total_cycle
         error_cycles = l_data[(l_data['Cycle'] > start_cycle) & (l_data['Cycle'] < finish_cycle)]['Cycle'].drop_duplicates().count()
+        error_rate = l_data[(l_data['Cycle'] > start_cycle) & (l_data['Cycle'] < finish_cycle)]['ErrorRate'].mean()
+        error_rate = '{0:.3f}'.format(error_rate)
+        if error_rate == 'nan':
+          error_rate=0
         error_data.append({
           'lane_id':lane_id,
           'read_id':read_id,
-          'error_cycles':str(error_cycles)})
+          'error_cycles':str(error_cycles),
+          'error_rate':error_rate})
     error_data = pd.DataFrame(error_data)
     error_data['lane_id'] = error_data['lane_id'].astype(int)
     error_data['read_id'] = error_data['read_id'].astype(int)
