@@ -1,4 +1,5 @@
 import os,re
+import numpy as np
 import pandas as pd
 from collections import defaultdict
 import seaborn as sns
@@ -177,6 +178,7 @@ def get_data_from_errorDf(errorDf,runinfoDf):
   try:
     errorDf['Lane'] = errorDf['Lane'].astype(int)
     errorDf['Cycle'] = errorDf['Cycle'].astype(int)
+    errorDf['ErrorRate'] = errorDf['ErrorRate'].astype(float)
     error_data = list()
     for lane_id,l_data in errorDf.groupby('Lane'):
       for read_entry in runinfoDf.to_dict(orient='records'):
@@ -651,7 +653,7 @@ def get_qscore_bar_plots(q2030Df,color_palette='Spectral_r',width=1000,height=40
     q2030Df['Cycle'] = q2030Df['Cycle'].astype(int)
     q2030Df['MedianQScore'] = q2030Df['MedianQScore'].astype(int)
     q2030Df['MedianQScore'] = \
-      pd.np.where(q2030Df['MedianQScore'] > 50,0,q2030Df['MedianQScore'])
+      np.where(q2030Df['MedianQScore'] > 50,0,q2030Df['MedianQScore'])
     q2030Df['Tile'] = q2030Df['Tile'].astype(int)
     qscore_bar_plots = list()
     colors = sns.color_palette(color_palette,8,as_cmap=False).as_hex()
