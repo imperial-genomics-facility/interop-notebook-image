@@ -134,8 +134,13 @@ def extract_yield_data_from_q2030Df(q2030Df,runinfoDf):
         finish_cycle = start_cycle + total_cycle
         r_q30 = l_data[(l_data['Cycle'] > start_cycle) & (l_data['Cycle'] < finish_cycle)]['Q30'].astype(int).fillna(0).sum()
         r_t = l_data[(l_data['Cycle'] > start_cycle) & (l_data['Cycle'] < finish_cycle)]['Total'].astype(int).fillna(0).sum()
-        r_pct = '{:.2f}'.format(int(r_q30)/int(r_t) * 100)
-        r_yield = '{:.2f}'.format(int(r_t)/1000000000)
+        if int(r_q30) > 0 and \
+           int(r_t) > 0:
+          r_pct = '{:.2f}'.format(int(r_q30)/int(r_t) * 100)
+          r_yield = '{:.2f}'.format(int(r_t)/1000000000)
+        else:
+          r_pct = 0
+          r_yield = 0 
         yield_data.append({
           'lane_id':lane_id,
           'read_id':read_id,
