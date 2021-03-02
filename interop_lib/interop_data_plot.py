@@ -172,10 +172,13 @@ def get_extraction_data_from_extractionDf(extractionDf,runinfoDf):
         read_id = read_entry.get('read_id')
         start_cycle = int(read_entry.get('start_cycle')) + 1
         mean_a = l_data[l_data['Cycle']==start_cycle]['MaxIntensity_A'].mean()
+        intensity_c1 = '{:.2f}'.format(mean_a)
+        if intensity_c1=='nan':
+          intensity_c1 = 0
         extraction_data.append({
           'lane_id':lane_id,
           'read_id':read_id,
-          'intensity_c1':'{:.2f}'.format(mean_a)})
+          'intensity_c1':intensity_c1})
     extraction_data = pd.DataFrame(extraction_data)
     extraction_data['lane_id'] =  extraction_data['lane_id'].astype(int)
     extraction_data['read_id'] =  extraction_data['read_id'].astype(int)
@@ -237,7 +240,9 @@ def calculate_phasing_stats(empiricalPhasingDf,runinfoDf):
         finish_cycle = start_cycle + total_cycle
         phasing_scores = list(l_data[(l_data['Cycle'] > start_cycle+1) & (l_data['Cycle'] < finish_cycle)].groupby('Cycle')['Phasing'].agg('median'))
         prephasing_scores = list(l_data[(l_data['Cycle'] > start_cycle+1) & (l_data['Cycle'] < finish_cycle)].groupby('Cycle')['Prephasing'].agg('median'))
-        if index_read == 'N':
+        if index_read == 'N' and \
+           len(phasing_scores) > 0 and \
+           len(prephasing_scores) > 0:
           linreg_phasing = linregress(range(1,len(phasing_scores)+1), phasing_scores)
           linreg_prephasing = linregress(range(1,len(prephasing_scores)+1), prephasing_scores)
           data.append({
