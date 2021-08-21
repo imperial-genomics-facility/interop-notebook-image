@@ -3,14 +3,14 @@ channels:
   - bioconda
 dependencies:
   - bioconda::illumina-interop=1.1.21
+  - conda-forge::dask=2021.3.0
+  - conda-forge::distributed=2021.3.0
   - pip
   - pip:
     - jupyterlab==3.1.7
-    - nbconvert[webpdf]==6.1.0
+    - nbconvert==6.0.7
     - iplotter==0.4.3
     - gviz-api==1.9.0
-    - dask==2021.8.1
-    - distributed==2021.8.1
     - pyspark==3.1.2
     - Jinja2==3.0.1
     - pyarrow==5.0.0
