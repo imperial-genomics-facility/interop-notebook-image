@@ -90,4 +90,6 @@ RUN conda update -n base -c defaults conda && \
     find miniconda3/ -type f -name *.pyc -exec rm -f {} \; 
 EXPOSE 8888
 EXPOSE 8080
+EXPOSE 8787
+EXPOSE 4040
 CMD [ "notebook" ]

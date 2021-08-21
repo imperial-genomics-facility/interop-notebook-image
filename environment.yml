@@ -5,7 +5,12 @@ dependencies:
   - bioconda::illumina-interop=1.1.21
   - pip
   - pip:
-    - jupyterlab>=3.0.0
-    - nbconvert[webpdf]>=6.0.0
+    - jupyterlab==3.1.7
+    - nbconvert[webpdf]==6.1.0
     - iplotter==0.4.3
     - gviz-api==1.9.0
+    - dask==2021.8.1
+    - distributed==2021.8.1
+    - pyspark==3.1.2
+    - Jinja2==3.0.1
+    - pyarrow==5.0.0
