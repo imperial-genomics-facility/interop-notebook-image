@@ -15,3 +15,4 @@ dependencies:
     - pyspark==3.1.2
     - Jinja2==3.0.1
     - pyarrow==5.0.0
+    - dask-labextension==5.1.0
