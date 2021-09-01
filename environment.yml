@@ -3,7 +3,7 @@ channels:
   - bioconda
 dependencies:
   - bioconda::java-jdk=8.0.112
-  - bioconda::illumina-interop=1.1.21
+  - bioconda::illumina-interop=1.1.23
   - conda-forge::dask=2021.3.0
   - conda-forge::distributed=2021.3.0
   - pip
