@@ -1,9 +1,9 @@
 import json
 import pandas as pd
 import numpy as np
-from .interop_data_plot import read_interop_data
-from .interop_data_plot import read_runinfo_xml
-from .interop_data_plot import get_summart_stats
+from interop_data_plot import read_interop_data
+from interop_data_plot import read_runinfo_xml
+from interop_data_plot import get_summart_stats
 
 def get_intensity_data(extractionDf, colors):
     try:
