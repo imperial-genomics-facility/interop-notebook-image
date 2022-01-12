@@ -217,7 +217,7 @@ def get_occupied_pass_filter(imaging_table_data):
             "color": colors[lane_id-1]})
     return dataset
 
-def get_interop_data_for_db(dump_file, runinfo_file, imaging_table_data=None):
+def get_interop_data_for_db(run_name, dump_file, runinfo_file, imaging_table_data=None):
     colors = [
         'rgb(255, 99, 132, 0.8)',
         'rgb(255, 159, 64, 0.8)',
@@ -251,7 +251,7 @@ def get_interop_data_for_db(dump_file, runinfo_file, imaging_table_data=None):
                 imaging_table_data=imaging_table_data)
         occupied_data = json.dumps(occupied_data)
     json_data = {
-        "run_name": "210521_A00949_0102_BHCT7CDRXY",
+        "run_name": run_name,
         "table_data": table_data,
         "flowcell_data": json.dumps(surface_data),
         "intensity_data": json.dumps(intensity_data),
