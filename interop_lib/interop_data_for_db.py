@@ -1,5 +1,5 @@
 import json
-from copy import copy
+from shutil import copy2
 import pandas as pd
 import numpy as np
 import os, tempfile, subprocess, json, logging
@@ -271,7 +271,7 @@ def get_interop_data_for_db(run_name, dump_file, runinfo_file, imaging_table_dat
 def generate_data_dumps_and_create_json_for_db(
     run_id, run_path, output_dir, generate_imaging, interop_dumptext_exe, interop_imaging_tablet_exe):
     try:
-        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temp_dir :
+        with tempfile.TemporaryDirectory() as temp_dir :
             if not os.path.exists(run_path):
                 raise IOError('Run path {0} not found'.format(run_path))
             final_json_output = \
@@ -309,7 +309,7 @@ def generate_data_dumps_and_create_json_for_db(
                     imaging_table_data=imaging_csv)
             with open(temp_json_output, 'w') as fp:
                 json.dump(json_data, fp)
-            copy(temp_json_output, final_json_output)
+            copy2(temp_json_output, final_json_output)
     except Exception as e:
         logging.error(e)
         raise
