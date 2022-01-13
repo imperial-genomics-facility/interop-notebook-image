@@ -294,7 +294,7 @@ def calculate_phasing_stats(empiricalPhasingDf, runinfoDf):
   except Exception as e:
     raise ValueError('Failed to get phasing stats, error: {0}'.format(e))
 
-def get_summart_stats(tileDf, q2030Df, extractionDf, errorDf, empiricalPhasingDf, runinfoDf):
+def get_summary_stats(tileDf, q2030Df, extractionDf, errorDf, empiricalPhasingDf, runinfoDf):
   try:
     read_data = \
       extract_read_data_from_tileDf(tileDf=tileDf)
@@ -310,18 +310,23 @@ def get_summart_stats(tileDf, q2030Df, extractionDf, errorDf, empiricalPhasingDf
       calculate_phasing_stats(
         empiricalPhasingDf=empiricalPhasingDf,
         runinfoDf=runinfoDf)
-    error_data = \
-      get_data_from_errorDf(
-        errorDf=errorDf,
-        runinfoDf=runinfoDf)
     merged_data = \
       yield_data.\
         merge(read_data, how='left', on=['read_id', 'lane_id']).\
         merge(runinfoDf, how='left', on='read_id').\
         merge(extraction_data, how='left', on=['lane_id', 'read_id']).\
         merge(phasing_data, how='left', on=['lane_id', 'read_id']).\
-        merge(error_data, how='left', on=['lane_id', 'read_id']).\
         fillna(0)
+    if errorDf is not None and \
+       len(errorDf.index) > 0:
+      error_data = \
+        get_data_from_errorDf(
+          errorDf=errorDf,
+          runinfoDf=runinfoDf)
+      merged_data = \
+        merged_data.\
+          merge(error_data, how='left', on=['lane_id', 'read_id']).\
+          fillna(0)
     return merged_data
   except Exception as e:
     raise ValueError('Failed to get summary stats, error: {0}'.format(e))
@@ -766,7 +771,7 @@ def summary_report_and_plots_for_interop_dump(interop_dump, runInfoXml_path):
       read_interop_data(filepath=interop_dump)
     runinfoDf = read_runinfo_xml(runInfoXml_path)
     merged_data = \
-      get_summart_stats(
+      get_summary_stats(
         tileDf=data.get('Tile'),
         q2030Df=data.get('Q2030'),
         extractionDf=data.get('Extraction'),

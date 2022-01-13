@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from interop_data_plot import read_interop_data
 from interop_data_plot import read_runinfo_xml
-from interop_data_plot import get_summart_stats
+from interop_data_plot import get_summary_stats
 
 def get_intensity_data(extractionDf, colors):
     try:
@@ -43,7 +43,7 @@ def get_intensity_data(extractionDf, colors):
 
 def get_table_data(tile, q2030, extraction, empiricalphasing, error, runinfo):
     merged_data = \
-      get_summart_stats(
+      get_summary_stats(
         tileDf=tile,
         q2030Df=q2030,
         extractionDf=extraction,
