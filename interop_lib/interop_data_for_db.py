@@ -1,6 +1,8 @@
 import json
+from copy import copy
 import pandas as pd
 import numpy as np
+import os, tempfile, subprocess, json, logging
 from interop_data_plot import read_interop_data
 from interop_data_plot import read_runinfo_xml
 from interop_data_plot import get_summary_stats
@@ -218,48 +220,96 @@ def get_occupied_pass_filter(imaging_table_data):
     return dataset
 
 def get_interop_data_for_db(run_name, dump_file, runinfo_file, imaging_table_data=None):
-    colors = [
-        'rgb(255, 99, 132, 0.8)',
-        'rgb(255, 159, 64, 0.8)',
-        'rgb(255, 205, 86, 0.8)',
-        'rgb(75, 192, 192, 0.8)',
-        'rgb(54, 162, 235, 0.8)',
-        'rgb(153, 102, 255, 0.8)',
-        'rgb(63, 245, 57, 0.8)',
-        'rgb(159, 20, 193, 0.8)']
-    data = read_interop_data(dump_file)
-    runinfoDf = read_runinfo_xml(runinfo_file)
-    extractionDf = data.get("Extraction")
-    intensity_data = get_intensity_data(extractionDf, colors)
-    tile = data.get('Tile')
-    q2030 = data.get('Q2030')
-    extraction = data.get('Extraction')
-    empiricalphasing = data.get('EmpiricalPhasing')
-    error = data.get('Error')
-    table_data = \
-        get_table_data(tile, q2030, extraction, empiricalphasing, error, runinfoDf)
-    surface_data = get_surface_data(tile)
-    clusterCount_box_data, density_box_data = \
-        get_cluster_and_density_counts(tile, colors)
-    qByLane = data.get('QByLane')
-    qscore_dist_data = get_qscore_bin_data(qByLane, colors)
-    qscore_bar_plots = get_QScore_by_cycle_data(q2030, colors)
-    occupied_data = ''
-    if imaging_table_data is not None:
-        occupied_data = \
-            get_occupied_pass_filter(
-                imaging_table_data=imaging_table_data)
-        occupied_data = json.dumps(occupied_data)
-    json_data = {
-        "run_name": run_name,
-        "table_data": table_data,
-        "flowcell_data": json.dumps(surface_data),
-        "intensity_data": json.dumps(intensity_data),
-        "cluster_count_data": json.dumps(clusterCount_box_data),
-        "density_data": json.dumps(density_box_data),
-        "qscore_bins_data": json.dumps(qscore_dist_data),
-        "qsocre_cycles_data": json.dumps(qscore_bar_plots),
-        "occupied_pass_filter": occupied_data}
-    return json_data
+    try:
+        colors = [
+            'rgb(255, 99, 132, 0.8)',
+            'rgb(255, 159, 64, 0.8)',
+            'rgb(255, 205, 86, 0.8)',
+            'rgb(75, 192, 192, 0.8)',
+            'rgb(54, 162, 235, 0.8)',
+            'rgb(153, 102, 255, 0.8)',
+            'rgb(63, 245, 57, 0.8)',
+            'rgb(159, 20, 193, 0.8)']
+        data = read_interop_data(dump_file)
+        runinfoDf = read_runinfo_xml(runinfo_file)
+        extractionDf = data.get("Extraction")
+        intensity_data = get_intensity_data(extractionDf, colors)
+        tile = data.get('Tile')
+        q2030 = data.get('Q2030')
+        extraction = data.get('Extraction')
+        empiricalphasing = data.get('EmpiricalPhasing')
+        error = data.get('Error')
+        table_data = \
+            get_table_data(tile, q2030, extraction, empiricalphasing, error, runinfoDf)
+        surface_data = get_surface_data(tile)
+        clusterCount_box_data, density_box_data = \
+            get_cluster_and_density_counts(tile, colors)
+        qByLane = data.get('QByLane')
+        qscore_dist_data = get_qscore_bin_data(qByLane, colors)
+        qscore_bar_plots = get_QScore_by_cycle_data(q2030, colors)
+        occupied_data = ''
+        if imaging_table_data is not None:
+            occupied_data = \
+                get_occupied_pass_filter(
+                    imaging_table_data=imaging_table_data)
+            occupied_data = json.dumps(occupied_data)
+        json_data = {
+            "run_name": run_name,
+            "table_data": table_data,
+            "flowcell_data": json.dumps(surface_data),
+            "intensity_data": json.dumps(intensity_data),
+            "cluster_count_data": json.dumps(clusterCount_box_data),
+            "density_data": json.dumps(density_box_data),
+            "qscore_bins_data": json.dumps(qscore_dist_data),
+            "qsocre_cycles_data": json.dumps(qscore_bar_plots),
+            "occupied_pass_filter": occupied_data}
+        return json_data
+    except:
+        raise
 
 
+def generate_data_dumps_and_create_json_for_db(
+    run_id, run_path, output_dir, generate_imaging, interop_dumptext_exe, interop_imaging_tablet_exe):
+    try:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temp_dir :
+            if not os.path.exists(run_path):
+                raise IOError('Run path {0} not found'.format(run_path))
+            final_json_output = \
+                os.path.join(output_dir, "{0}.json".format(run_id))
+            if os.path.exists(final_json_output):
+                raise IOError('Output file {0} already present'.format(final_json_output))
+            dumptext_csv = \
+                os.path.join(temp_dir, "{0}.csv".format(run_id))
+            dumptext_cmd = \
+                "{0} {1} > {2}".\
+                    format(
+                        interop_dumptext_exe,
+                        run_path,
+                        dumptext_csv)
+            subprocess.check_call(dumptext_cmd, shell=True)
+            imaging_csv = None
+            if generate_imaging:
+                imaging_csv = \
+                    os.path.join(temp_dir, "{0}_imaging.csv".format(run_id))
+                imaging_table_cmd = \
+                    "{0} {1} > {2}".\
+                        format(
+                            interop_imaging_tablet_exe,
+                            run_path,
+                            imaging_csv)
+                subprocess.check_call(imaging_table_cmd, shell=True)
+            temp_json_output = \
+                os.path.join(temp_dir, "{0}.json".format(run_id))
+            os.makedirs(output_dir, exist_ok=True)
+            json_data = \
+                get_interop_data_for_db(
+                    run_name=run_id,
+                    dump_file=dumptext_csv,
+                    runinfo_file=os.path.join(run_path, 'RunInfo.xml'),
+                    imaging_table_data=imaging_csv)
+            with open(temp_json_output, 'w') as fp:
+                json.dump(json_data, fp)
+            copy(temp_json_output, final_json_output)
+    except Exception as e:
+        logging.error(e)
+        raise
