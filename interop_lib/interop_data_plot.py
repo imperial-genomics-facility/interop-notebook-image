@@ -65,13 +65,13 @@ def read_interop_data(filepath):
         'Image',
         'Q',
         'Index']
-    output_list = dict()
+    output_dict = dict()
     for key in list_of_metrix:
       if data.get(key) is None:
-        output_list.update({key: pd.DataFrame()})
+        output_dict.update({key: pd.DataFrame()})
       else:
-        output_list.update({key: pd.DataFrame(data.get(key))})
-    return output_list
+        output_dict.update({key: pd.DataFrame(data.get(key))})
+    return output_dict
   except Exception as e:
     raise ValueError('Failed to extract data from interop dump, error:{0}'.format(e))
 
