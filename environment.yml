@@ -8,7 +8,9 @@ dependencies:
   - conda-forge::distributed=2021.3.0
   - pip
   - pip:
-    - jupyterlab==3.1.7
+    - matplotlib==3.4.1
+    - matplotlib-inline==0.1.2
+    - ipykernel==5.5.5
     - nbconvert==6.0.7
     - iplotter==0.4.3
     - gviz-api==1.9.0
