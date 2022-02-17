@@ -261,7 +261,7 @@ def get_interop_data_for_db(run_name, dump_file, runinfo_file, imaging_table_dat
             "cluster_count_data": json.dumps(clusterCount_box_data),
             "density_data": json.dumps(density_box_data),
             "qscore_bins_data": json.dumps(qscore_dist_data),
-            "qsocre_cycles_data": json.dumps(qscore_bar_plots),
+            "qscore_cycles_data": json.dumps(qscore_bar_plots),
             "occupied_pass_filter": occupied_data}
         return json_data
     except:
